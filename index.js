@@ -8,6 +8,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const PORT = process.env.PORT || 9000
+
 
 const con = mysql.createConnection({
     host:process.env.DB_HOST,
@@ -114,4 +116,4 @@ app.delete("/delete",(req,res)=>{
 //     })
 // })
 
-app.listen(process.env.PORT,()=>{console.log(`ready @ ${process.env.PORT}`)})
+app.listen(PORT,()=>{console.log(`ready @ ${PORT}`)})
