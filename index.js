@@ -37,7 +37,8 @@ app.post("/cart",(req,res)=>{
 })
 
 app.post("/description",(req,res)=>{
-    let sql = `select * from product_${req.body.select} where id =${req.body.id}`;
+    let sql = `select * from product_${(req.body.select).toLowerCase()} where id =${req.body.id}`;
+    console.log(sql);
     con.query(sql,(err,result)=>{
         if(err)
         {
