@@ -3,6 +3,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const mysql = require("mysql2");
+const stripe = require("stripe")(process.env.STRIPE_SECRET);
 
 const app = express();
 app.use(cors());
@@ -11,12 +12,14 @@ app.use(express.json());
 const PORT = process.env.PORT || 9000
 
 
-const con = mysql.createConnection({
+const con = mysql.createPool({
     host:process.env.DB_HOST,
     user:process.env.DB_USERNAME,
     password:process.env.DB_PASSWORD,
     database:process.env.DB_DBNAME
 });
+
+con.query('select 1 + 1', (err, rows) => { /* */ });
 
 app.post("/save",(req,res)=>{
     let data = [req.body.username]
@@ -25,6 +28,58 @@ app.post("/save",(req,res)=>{
         if(err)   res.send(err);
         else      res.send(result);
     })
+})
+
+// checkout api
+// app.post("/api/create-checkout-session",async(req,res)=>{
+//     const {products} = req.body;
+
+
+    // const lineItems = products.map((product)=>({
+    //     price_data:{
+    //         currency:"inr",
+    //         product_data:{
+    //             name:product.dish,
+    //             images:[product.imgdata]
+    //         },
+    //         unit_amount:product.price * 100,
+    //     },
+    //     quantity:product.qnty
+    // }));
+
+    // const session = await stripe.checkout.sessions.create({
+    //     payment_method_types:["card"],
+    //     line_items:lineItems,
+    //     mode:"payment",
+    //     success_url:"http://localhost:3000/sucess",
+    //     cancel_url:"http://localhost:3000/cancel",
+    // });
+
+    // res.json({id:session.id})
+ 
+// })
+
+app.post("/checkout",(req,res)=>{
+    const products = req.body.product
+    const lineItems = products.map((product)=>({
+        price_data:{
+            currency:"inr",
+            product_data:{
+                name:product.name,
+                images:[product.imgSrc]
+            },
+            unit_amount:product.price * 100,
+        },
+        quantity:1
+    }));
+    const session = stripe.checkout.sessions.create({
+        payment_method_types:["card"],
+        line_items:lineItems,
+        mode:"payment",
+        success_url:"http://localhost:3000/sucess",
+        cancel_url:"http://localhost:3000/cancel",
+    });
+    res.json({id:session.id})
 })
 
 app.post("/cart",(req,res)=>{
